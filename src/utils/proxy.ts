@@ -133,9 +133,11 @@ export async function sendProxy(
     return event.node.res.end(data);
   }
 
-  // Send as stream
-  for await (const chunk of response.body as any as AsyncIterable<Uint8Array>) {
-    event.node.res.write(chunk);
+  if (response.body) {
+    // Send as stream
+    for await (const chunk of response.body as any as AsyncIterable<Uint8Array>) {
+      event.node.res.write(chunk);
+    }
   }
   return event.node.res.end();
 }

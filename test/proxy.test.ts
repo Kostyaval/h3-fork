@@ -12,6 +12,7 @@ import {
   setHeader,
   readRawBody,
   setCookie,
+  setResponseStatus,
 } from "../src";
 import { sendProxy, proxyRequest } from "../src/utils/proxy";
 
@@ -105,6 +106,30 @@ describe("", () => {
           "method": "POST",
         }
       `);
+    });
+
+    it("can handle empty 304 responses", async () => {
+      app.use(
+        "/reply-empty-304",
+        eventHandler((event) => {
+          setResponseStatus(event, 304);
+          return "";
+        })
+      );
+
+      app.use(
+        "/",
+        eventHandler((event) => {
+          return proxyRequest(event, url + "/reply-empty-304", { fetch });
+        })
+      );
+
+      const result = await fetch(url + "/", {
+        method: "GET",
+      });
+
+      expect(result).toBeTruthy();
+      expect(result!.status).toBe(304);
     });
   });
 
