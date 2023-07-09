@@ -576,8 +576,10 @@ async function sendProxy(event, target, opts = {}) {
     const data = new Uint8Array(await response.arrayBuffer());
     return event.node.res.end(data);
   }
-  for await (const chunk of response.body) {
-    event.node.res.write(chunk);
+  if (response.body) {
+    for await (const chunk of response.body) {
+      event.node.res.write(chunk);
+    }
   }
   return event.node.res.end();
 }
@@ -1296,6 +1298,8 @@ function createAppEventHandler(stack, options) {
       } else if (type === "object" || type === "boolean" || type === "number") {
         if (val.buffer) {
           return send(event, val);
+        } else if (val instanceof Blob) {
+          return send(event, Buffer.from(await val.arrayBuffer()), val.type);
         } else if (val instanceof Error) {
           throw createError(val);
         } else {
