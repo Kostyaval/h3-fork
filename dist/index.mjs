@@ -567,7 +567,13 @@ async function sendProxy(event, target, opts = {}) {
     await opts.onResponse(event, response);
   }
   if (response._data !== void 0) {
-    return response._data;
+    if (response._data && response._data.arrayBuffer) {
+      await response._data.arrayBuffer().then(b => {
+        const buffer = Buffer.from(b);
+        event.node.res.write(buffer);
+      });
+    }
+    return event.node.res.end();
   }
   if (event.handled) {
     return;
